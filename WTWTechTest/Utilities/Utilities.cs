@@ -2,6 +2,12 @@ using Microsoft.Data.Sqlite;
 using CsvHelper;
 using System.Globalization;
 
+
+// Currently this file contains various helpers and utilities for both creating the test tables that this set of tests works off
+// Environment config and other stuff. The custom assertion tool for checking values from one table to another table 
+// after getting the current exchange rate is in this file. In a real implementation I would split this file out into 
+// different Utility / helper files separated by category, ie. SqlUtilities, FileUtilities, ValidationUtilities etc. 
+
 namespace WTWTechTest.Utilities;
 
 public sealed class ValidationResult
