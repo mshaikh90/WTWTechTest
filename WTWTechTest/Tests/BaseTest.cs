@@ -1,5 +1,6 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
+using WTWTechTest.Configuration;
 using WTWTechTest.Utilities;
 
 
@@ -31,18 +32,11 @@ public class BaseTest
     [OneTimeSetUp]
     public void Setup()
     {
-        var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Development";
-
-        var builder = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true);
-
-        Configuration = builder.Build();
+        Configuration = TestConfigurationFactory.Create();
 
         Utilities.Utilities.DeleteDirectoryIfExists(Utilities.Utilities.GetTempFolderPath());
 
-        _dbFileName = Utilities.Utilities.CreateUniqueDatabaseFileName(Configuration.GetConnectionString("DefaultConnection"));
+        _dbFileName = Utilities.Utilities.CreateUniqueDatabaseFileName(Configuration.GetRequiredDefaultConnectionString());
 
         ConnectionString = Utilities.Utilities.InitializeDatabase(_dbFileName);
 
