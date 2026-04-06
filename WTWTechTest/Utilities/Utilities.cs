@@ -231,14 +231,14 @@ public static class Utilities
                     continue;
                 }
 
-                var sterlingValue = reader.GetDouble(aIndex);
-                var euroValue = reader.GetDouble(bIndex);
-                var expectedEuroValue = sterlingValue * rate;
+                var sourceTableValue = reader.GetDouble(aIndex);
+                var targetTableValue = reader.GetDouble(bIndex);
+                var expectedTargetTableValue = sourceTableValue * rate;
 
-                if (Math.Abs(euroValue - expectedEuroValue) > tolerance)
+                if (Math.Abs(targetTableValue - expectedTargetTableValue) > tolerance)
                 {
                     result.Errors.Add(
-                        $"Value mismatch for Product='{product}', Column='{columns[i]}': expected {expectedEuroValue}, actual {euroValue}");
+                        $"Value mismatch for Product='{product}', Column='{columns[i]}': expected {expectedTargetTableValue}, actual {targetTableValue}");
                 }
             }
         }
