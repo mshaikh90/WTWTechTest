@@ -28,6 +28,7 @@ public static class TestConfigurationFactory
     {
         var environmentName = Environment.GetEnvironmentVariable(EnvironmentVariableName);
 
+        Console.WriteLine($"Environment variable '{EnvironmentVariableName}' is set to: '{environmentName}'");
         return string.IsNullOrWhiteSpace(environmentName)
             ? DefaultEnvironmentName
             : environmentName;

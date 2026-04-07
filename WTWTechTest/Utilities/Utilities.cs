@@ -64,6 +64,7 @@ public static class Utilities
         if (File.Exists(filePath))
         {
             File.Delete(filePath);
+            Console.WriteLine($"Deleted existing file at: {filePath}");
         }
     }
 
@@ -80,13 +81,13 @@ public static class Utilities
         {
             extension = ".db";
         }
-
+        Console.WriteLine($"Generated unique database filename based on configured connection string: {configuredConnectionString} -> {nameWithoutExtension}_{Guid.NewGuid():N}{extension}");
         return $"{nameWithoutExtension}_{Guid.NewGuid():N}{extension}";
     }
 
     public static string[] BuildCurrencyTableCommands(string tableName, IEnumerable<CurrencyTableRow> rows)
     {
-        if (!IsSafeSqlIdentifier(tableName)) throw new ArgumentException("Table name is invalid.", nameof(tableName));
+        if (string.IsNullOrWhiteSpace(tableName)) throw new ArgumentException("Table name is required.", nameof(tableName));
         if (rows == null) throw new ArgumentNullException(nameof(rows));
 
         return
@@ -142,13 +143,9 @@ public static class Utilities
     {
         if (string.IsNullOrWhiteSpace(dbFileName)) throw new ArgumentException("Database filename is required.", nameof(dbFileName));
 
-        var dbFilePath = GetDatabaseFilePath(dbFileName);
-        DeleteFileIfExists(dbFilePath);
-
+        DeleteFileIfExists(GetDatabaseFilePath(dbFileName));
         var connectionString = BuildConnectionString(dbFileName);
-
-        using var connection = OpenConnection(connectionString);
-
+        Console.WriteLine($"Initialized database at: {GetDatabaseFilePath(dbFileName)}");
         return connectionString;
     }
 
@@ -189,8 +186,6 @@ public static class Utilities
         if (string.IsNullOrWhiteSpace(sourceCurrency)) throw new ArgumentException("Source currency is required.", nameof(sourceCurrency));
         if (string.IsNullOrWhiteSpace(targetCurrency)) throw new ArgumentException("Target currency is required.", nameof(targetCurrency));
         if (tolerance < 0) throw new ArgumentOutOfRangeException(nameof(tolerance), "Tolerance must be zero or positive.");
-        if (!IsSafeSqlIdentifier(sourceTableName)) throw new ArgumentException("Source table name is invalid.", nameof(sourceTableName));
-        if (!IsSafeSqlIdentifier(targetTableName)) throw new ArgumentException("Target table name is invalid.", nameof(targetTableName));
 
         var result = new ValidationResult();
         var columns = new[] { "Variety1", "Variety2", "Variety3", "Variety4" };
@@ -270,19 +265,15 @@ public static class Utilities
     {
         if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentException("Connection string is required.", nameof(connectionString));
 
-        var builder = new SqliteConnectionStringBuilder(connectionString)
-        {
-            Mode = SqliteOpenMode.ReadWriteCreate
-        };
-
-        var connection = new SqliteConnection(builder.ToString());
+        var connection = new SqliteConnection(connectionString);
         connection.Open();
+        Console.WriteLine($"Opened connection to database: {new SqliteConnectionStringBuilder(connectionString).DataSource}");
         return connection;
     }
 
     private static string BuildCurrencyInsertCommand(string tableName, CurrencyTableRow row)
     {
-        if (!IsSafeSqlIdentifier(tableName)) throw new ArgumentException("Table name is invalid.", nameof(tableName));
+        if (string.IsNullOrWhiteSpace(tableName)) throw new ArgumentException("Table name is required.", nameof(tableName));
         if (row == null) throw new ArgumentNullException(nameof(row));
 
         return string.Format(
@@ -310,26 +301,5 @@ public static class Utilities
         return value.Replace("'", "''");
     }
 
-    private static bool IsSafeSqlIdentifier(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return false;
-        }
 
-        if (!(char.IsLetter(value[0]) || value[0] == '_'))
-        {
-            return false;
-        }
-
-        for (var i = 1; i < value.Length; i++)
-        {
-            if (!(char.IsLetterOrDigit(value[i]) || value[i] == '_'))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
 }

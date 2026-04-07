@@ -16,6 +16,15 @@ One more quick side note - this framework spins up an SQLite DB for use in testi
 
 Another side, side note - I developed this solution on MacOS using JetBrains Rider IDE, I did before sending my email with link to fork pull the repo onto an old Windows machine I had lying around and test that it works on Windows 11, Visual Studio. All good on my side and I am confident you won't have any issues either!
 
+Yet another side note - 
+
+I’ve kept the environment/config side of this project pretty lightweight. At the moment the tests read from `appsettings.json`, and can also pick up an environment-specific file if `DOTNET_ENVIRONMENT` is set. If it isn’t set, the project just falls back to the default config.
+
+For this technical test that felt like a good middle ground between keeping things simple and still showing the general shape of how I’d manage config in a .NET project.
+
+In a real-world setup, I’d be a bit stricter with environment separation and I wouldn’t keep sensitive values in source-controlled config files. For local development I’d likely use something like `dotnet user-secrets`, and for deployed environments I’d expect configuration and secrets to come from environment variables or a secure secrets store.
+
+
 ## Simple overview
 - BaseTest - where the Nunit OnetimeSetup and OnetimeTeardown methods are, these include setting up DB with tables, grabbing enviornment config and deleting DB and temp files after run
 - SqlDbTests - this is where the tests are, this class and other test classes if they were made inheirit from BaseTest so they can use the setup and teardown methods
