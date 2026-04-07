@@ -2,4 +2,9 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/WTWTechTest/bin/Debug/net10.0
+/WTWTechTest/bin
+/.idea/.idea.WTWTechTest/.idea
+.DS_Store
+WTWTechTest.sln.DotSettings.user
+~$W Tech Test Part 1.docx
+/WTWTechTest/obj
