@@ -1,6 +1,7 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using WTWTechTest.Configuration;
+using WTWTechTest.Reporting;
 using WTWTechTest.Utilities;
 
 
@@ -28,6 +29,24 @@ public class BaseTest
     protected SqliteConnection? Connection { get; private set; }
     protected string ConnectionString { get; private set; } = string.Empty;
     protected IConfiguration Configuration { get; private set; }
+
+    /*
+     * The two [SetUp] and [TearDown] hooks are around reporting only, they will run for each test method, this ensures
+     * That that test cases are separated cleanly in the report. The ReportingSetup.cs file is responsible for
+     * initialising reporting on the run context level.
+     */
+    
+    [SetUp]
+    public void StartTestReporting()
+    {
+        ExtentReportManager.StartTest(TestContext.CurrentContext);
+    }
+
+    [TearDown]
+    public void CompleteTestReporting()
+    {
+        ExtentReportManager.CompleteTest(TestContext.CurrentContext);
+    }
 
     [OneTimeSetUp]
     public void Setup()
@@ -73,7 +92,7 @@ public class BaseTest
     }
 
     [OneTimeTearDown]
-    public void TearDown()
+    public void OneTimeTearDown()
     {
         Connection?.Close();
         Connection?.Dispose();

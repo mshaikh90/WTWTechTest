@@ -34,3 +34,17 @@ In a real-world setup, I’d be a bit stricter with environment separation and I
 
 I think that's it! Any questions, I'd be more than happy to answer!
 
+## Reporting
+
+I have added ExtentReports so test runs output a detailed HTML report.
+
+- Default output folder: `extent-report`
+- Main report file: `extent-report/index.html`
+- You can override the output folder with `EXTENT_REPORT_DIR`
+
+Run tests as normal:
+
+```bash
+dotnet test
+```
+
