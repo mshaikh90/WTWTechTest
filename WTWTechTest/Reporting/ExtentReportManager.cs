@@ -1,6 +1,7 @@
 using AventStack.ExtentReports;
 using AventStack.ExtentReports.Reporter;
 using NUnit.Framework.Interfaces;
+using NUnit.Framework;
 
 namespace WTWTechTest.Reporting;
 

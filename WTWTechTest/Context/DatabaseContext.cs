@@ -1,58 +1,30 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using WTWTechTest.Configuration;
-using WTWTechTest.Reporting;
 using WTWTechTest.Utilities;
 
+namespace WTWTechTest.Context;
 
-/*
- *  For the Purposes of the test I am using SQLite, in reality I would set up an SQL connection here in baseTest as an
- * NUnit SetUp method, which would initialise the DB connection. I was considering using docker to spin up an SQL server
- * and use an actual connection string, but I wasn't sure if docker was somehthing you guys use on a day to day basis
- * and thought I'd avoid the typical "works on my machine" scenario!
- *
- * The test spins up an SQLite DB on SetUp, and then deletes the DB on teardown, I know this is not what a real test
- * would do in the real world scenario, we would use SQL to connect to an actual DB with the connection string, and
- * read data from there.
- */
-
-namespace WTWTechTest.Tests;
-
-public class BaseTest
+public class DatabaseContext : IDisposable
 {
-    protected const string TableASterling = "TableA_Sterling";
-    protected const string TableBEuro = "TableB_Euro";
-    protected const string TableCEuroWithErrors = "TableC_EuroWithErrors";
+    public const string TableASterling = "TableA_Sterling";
+    public const string TableBEuro = "TableB_Euro";
+    public const string TableCEuroWithErrors = "TableC_EuroWithErrors";
 
     private string _dbFileName = "test.db";
+    private bool _isDisposed;
 
-    protected SqliteConnection? Connection { get; private set; }
-    protected string ConnectionString { get; private set; } = string.Empty;
-    protected IConfiguration Configuration { get; private set; }
+    public SqliteConnection? Connection { get; private set; }
+    public string ConnectionString { get; private set; } = string.Empty;
+    public IConfiguration Configuration { get; private set; }
 
-    /*
-     * The two [SetUp] and [TearDown] hooks are around reporting only, they will run for each test method, this ensures
-     * That that test cases are separated cleanly in the report. The ReportingSetup.cs file is responsible for
-     * initialising reporting on the run context level.
-     */
-    
-    [SetUp]
-    public void StartTestReporting()
-    {
-        ExtentReportManager.StartTest(TestContext.CurrentContext);
-    }
-
-    [TearDown]
-    public void CompleteTestReporting()
-    {
-        ExtentReportManager.CompleteTest(TestContext.CurrentContext);
-    }
-
-    [OneTimeSetUp]
-    public void Setup()
+    public DatabaseContext()
     {
         Configuration = TestConfigurationFactory.Create();
+    }
 
+    public void InitializeDatabase()
+    {
         Utilities.Utilities.DeleteDirectoryIfExists(Utilities.Utilities.GetTempFolderPath());
 
         _dbFileName = Utilities.Utilities.CreateUniqueDatabaseFileName(Configuration.GetRequiredDefaultConnectionString());
@@ -91,12 +63,62 @@ public class BaseTest
         Connection = Utilities.Utilities.OpenConnection(ConnectionString);
     }
 
-    [OneTimeTearDown]
-    public void OneTimeTearDown()
+    public void Cleanup()
     {
-        Connection?.Close();
-        Connection?.Dispose();
+        try
+        {
+            Connection?.Close();
+        }
+        catch
+        {
+            // Ignore errors during close
+        }
 
-        Utilities.Utilities.DeleteFileIfExists(Utilities.Utilities.GetDatabaseFilePath(_dbFileName));
+        try
+        {
+            Connection?.Dispose();
+            Connection = null;
+        }
+        catch
+        {
+            // Ignore errors during dispose
+        }
+
+        // Force garbage collection to release SQLite connections
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+
+        // Give the database file a moment to be released
+        System.Threading.Thread.Sleep(200);
+
+        try
+        {
+            Utilities.Utilities.DeleteFileIfExists(Utilities.Utilities.GetDatabaseFilePath(_dbFileName));
+        }
+        catch (IOException)
+        {
+            // If file is still locked, ignore it - it will be cleaned up later
+            Console.WriteLine($"Warning: Could not delete database file {_dbFileName} - file may still be in use");
+        }
+
+        try
+        {
+            Utilities.Utilities.DeleteDirectoryIfExists(Utilities.Utilities.GetTempFolderPath());
+        }
+        catch (IOException)
+        {
+            // If directory is still locked, ignore it
+            Console.WriteLine("Warning: Could not delete temp directory - directory may still be in use");
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_isDisposed)
+            return;
+
+        Cleanup();
+        _isDisposed = true;
+        GC.SuppressFinalize(this);
     }
 }
