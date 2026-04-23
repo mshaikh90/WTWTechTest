@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using TechTalk.SpecFlow;
 using WTWTechTest.Context;
+using WTWTechTest.Utilities;
 
 namespace WTWTechTest.StepDefinitions;
 
@@ -17,19 +18,18 @@ public class QueryExportSteps
     [When(@"I export the query ""([^""]*)"" to CSV file ""([^""]*)""")]
     public void WhenIExportTheQueryToCsvFile(string query, string filename)
     {
-        Utilities.Utilities.ExecuteQueryToCsv(
-            _testContext.DatabaseContext.ConnectionString, 
-            query, 
+        CsvUtilities.ExecuteQueryToCsv(
+            _testContext.DatabaseContext.ConnectionString,
+            query,
             filename);
 
-        _testContext.CsvFilePath = Utilities.Utilities.GetCsvFilePath(filename);
+        _testContext.CsvFilePath = FileUtilities.GetCsvFilePath(filename);
     }
 
     [Then(@"the CSV file ""([^""]*)"" should exist")]
     public void ThenTheCsvFileShouldExist(string filename)
     {
-        var filePath = Utilities.Utilities.GetCsvFilePath(filename);
-        Assert.That(File.Exists(filePath), Is.True, 
-            $"Expected CSV file to exist at: {filePath}");
+        Assert.That(File.Exists(_testContext.CsvFilePath), Is.True,
+            $"Expected CSV file to exist at: {_testContext.CsvFilePath}");
     }
 }

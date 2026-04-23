@@ -2,6 +2,8 @@ using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using WTWTechTest.Configuration;
 using WTWTechTest.Utilities;
+using static WTWTechTest.Utilities.FileUtilities;
+using static WTWTechTest.Utilities.SqlUtilities;
 
 namespace WTWTechTest.Context;
 
@@ -25,13 +27,13 @@ public class DatabaseContext : IDisposable
 
     public void InitializeDatabase()
     {
-        Utilities.Utilities.DeleteDirectoryIfExists(Utilities.Utilities.GetTempFolderPath());
+        DeleteDirectoryIfExists(GetTempFolderPath());
 
-        _dbFileName = Utilities.Utilities.CreateUniqueDatabaseFileName(Configuration.GetRequiredDefaultConnectionString());
+        _dbFileName = CreateUniqueDatabaseFileName(Configuration.GetRequiredDefaultConnectionString());
 
-        ConnectionString = Utilities.Utilities.InitializeDatabase(_dbFileName);
+        ConnectionString = SqlUtilities.InitializeDatabase(_dbFileName);
 
-        var tableASqlCommands = Utilities.Utilities.BuildCurrencyTableCommands(TableASterling, new[]
+        var tableASqlCommands = BuildCurrencyTableCommands(TableASterling, new[]
         {
             new CurrencyTableRow("Product 1", 10, 12, 14, 45),
             new CurrencyTableRow("Product 2", 20, 15, 24, null),
@@ -40,7 +42,7 @@ public class DatabaseContext : IDisposable
             new CurrencyTableRow("Total", 80, 87, 38, 45)
         });
 
-        var tableBSqlCommands = Utilities.Utilities.BuildCurrencyTableCommands(TableBEuro, new[]
+        var tableBSqlCommands = BuildCurrencyTableCommands(TableBEuro, new[]
         {
             new CurrencyTableRow("Product 1", 15, 18, 21, 67.5),
             new CurrencyTableRow("Product 2", 30, 22.5, 36, null),
@@ -49,7 +51,7 @@ public class DatabaseContext : IDisposable
             new CurrencyTableRow("Total", 120, 130.5, 57, 67.5)
         });
 
-        var tableCSqlCommands = Utilities.Utilities.BuildCurrencyTableCommands(TableCEuroWithErrors, new[]
+        var tableCSqlCommands = BuildCurrencyTableCommands(TableCEuroWithErrors, new[]
         {
             new CurrencyTableRow("Product 1", 15, 18, 20, 67.5),
             new CurrencyTableRow("Product 2", 31, 22.5, 36, null),
@@ -58,9 +60,9 @@ public class DatabaseContext : IDisposable
             new CurrencyTableRow("Total", 121, 130.5, 57, 66.5)
         });
 
-        Utilities.Utilities.ExecuteSql(ConnectionString, tableASqlCommands.Concat(tableBSqlCommands).Concat(tableCSqlCommands).ToArray());
+        ExecuteSql(ConnectionString, tableASqlCommands.Concat(tableBSqlCommands).Concat(tableCSqlCommands).ToArray());
 
-        Connection = Utilities.Utilities.OpenConnection(ConnectionString);
+        Connection = OpenConnection(ConnectionString);
     }
 
     public void Cleanup()
@@ -93,7 +95,7 @@ public class DatabaseContext : IDisposable
 
         try
         {
-            Utilities.Utilities.DeleteFileIfExists(Utilities.Utilities.GetDatabaseFilePath(_dbFileName));
+            DeleteFileIfExists(GetDatabaseFilePath(_dbFileName));
         }
         catch (IOException)
         {
@@ -103,7 +105,7 @@ public class DatabaseContext : IDisposable
 
         try
         {
-            Utilities.Utilities.DeleteDirectoryIfExists(Utilities.Utilities.GetTempFolderPath());
+            DeleteDirectoryIfExists(GetTempFolderPath());
         }
         catch (IOException)
         {

@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using TechTalk.SpecFlow;
 using WTWTechTest.Context;
+using WTWTechTest.Utilities;
 
 namespace WTWTechTest.StepDefinitions;
 
@@ -17,7 +18,7 @@ public class CurrencyConversionSteps
     [When(@"I validate conversion from ""([^""]*)"" to ""([^""]*)"" using exchange rate from ""([^""]*)"" to ""([^""]*)""")]
     public void WhenIValidateConversionBetweenTables(string sourceTable, string targetTable, string sourceCurrency, string targetCurrency)
     {
-        _testContext.ValidationResult = Utilities.Utilities.ValidateConversionBetweenTables(
+        _testContext.ValidationResult = ValidationUtilities.ValidateConversionBetweenTables(
             _testContext.DatabaseContext.Connection!,
             sourceTable,
             targetTable,
